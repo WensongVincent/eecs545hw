@@ -114,7 +114,8 @@ def compute_y_boundary(X_coord: np.ndarray, w: np.ndarray) -> np.ndarray:
     # x_coord and coefficients w. Please return/save your y_coordindate into  #
     # y_coord parameter. It is fair to assume that w[2] will not be zero.     #
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    Y_coord = ( - w[1] * X_coord - w[0]) / w[2]
     ###########################################################################
     #                            END OF YOUR CODE                             #
     ###########################################################################
