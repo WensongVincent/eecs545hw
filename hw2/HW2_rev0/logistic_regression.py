@@ -43,7 +43,9 @@ def naive_logistic_regression(X: np.ndarray, Y: np.ndarray, max_iters = 100) -> 
             # Also, please do not introduce any additional python inner loop. #
             # note: You are allowed to use predefined sigmoid function above. #
             ###################################################################
-            raise NotImplementedError("TODO: Add your implementation here.")
+            # raise NotImplementedError("TODO: Add your implementation here.")
+            grad += (data_y - sigmoid((w.reshape(1, -1) @ data_x.reshape(-1, 1).squeeze()))) * data_x
+            H -= sigmoid(w.reshape(1, -1) @ data_x.reshape(-1, 1)) * (1 - sigmoid(w.reshape(1, -1) @ data_x.reshape(-1, 1))) * data_x.reshape(-1, 1) @ data_x.reshape(1, -1)
             ###################################################################
             #                        END OF YOUR CODE                         #
             ###################################################################
@@ -83,7 +85,10 @@ def vectorized_logistic_regression(X: np.ndarray, Y: np.ndarray, max_iters = 100
         #######################################################################
         grad = None  # hint: grad.shape should be (d, ) at the end of this block
         H = None  # hint: H.shape should be (d, d) at the end of this block
-        raise NotImplementedError("TODO: Add your implementation here.")
+        # raise NotImplementedError("TODO: Add your implementation here.")
+        grad = (X.T @ (Y - sigmoid((X @ w)))).squeeze()
+        H = - X.T @ np.diag((sigmoid(X @ w) * (1 - sigmoid(X @ w))).squeeze()) @ X
+        # import pdb; pdb.set_trace()
         #######################################################################
         #                          END OF YOUR CODE                           #
         #######################################################################
