@@ -27,7 +27,10 @@ def compute_softmax_probs(X: np.ndarray, W: np.ndarray) -> np.ndarray:
     # Hint: the pseudo code in the link will not be 100% matched with ours.   #
     # You may need to slightly edit the code script in the link.              #
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    h = X @ W.T 
+    h -= np.max(h, axis=1, keepdims=True)
+    probs = np.exp(h) / np.sum(np.exp(h), axis=1, keepdims=True)
     ###########################################################################
     #                            END OF YOUR CODE                             #
     ###########################################################################
@@ -67,7 +70,14 @@ def gradient_ascent_train(X_train: np.ndarray,
         # You are allowed to use compute_softmax_probs function.          #
         # Note that Y_train has class labels in [1 ~ num_class]           #
         ###################################################################
-        raise NotImplementedError("TODO: Add your implementation here.")
+        # raise NotImplementedError("TODO: Add your implementation here.")
+        # Make zero-hot matrix
+        Y_train_embed = np.zeros((N, num_class))
+        Y_train_embed[np.arange(N), int_Y_train.squeeze() - 1] = 1
+        # Compute softmax probability
+        softmax_prob = compute_softmax_probs(X_train, W)
+        # Gradient
+        delta_W = (X_train.T @ (Y_train_embed - softmax_prob)).T
         ###################################################################
         #                        END OF YOUR CODE                         #
         ###################################################################
@@ -105,7 +115,9 @@ def compute_accuracy(X_test: np.ndarray,
     # We are using this value at the end of this function by dividing it to   #
     # number of (X, Y) data pairs. Hint: check the equation in the homework.  #
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    Y_pred = (np.argmax(compute_softmax_probs(X_test, W), axis=1) + 1).squeeze()
+    count_correct = np.sum(((Y_test).squeeze() - Y_pred) == 0)
     ###########################################################################
     #                            END OF YOUR CODE                             #
     ###########################################################################
