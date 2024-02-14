@@ -88,7 +88,6 @@ def gradient_ascent_train(X_train: np.ndarray,
         count_c += 1 if epoch > 300 and np.sum(abs(alpha * delta_W)) < 0.05 else 0
         if count_c > 5:
             break
-
     return W
 
 

@@ -35,7 +35,17 @@ def train_naive_bayes(X: np.ndarray, Y: np.ndarray,
     # Please do not forget to apply Laplace smothing here.                    #
     # Hint: you can filter out SPAM mail details with X[Y == 1, :].           #
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    alpha = 1
+    num_spam = Y.sum()
+    num_non_spam = num_mails - num_spam
+    X_spam = X[Y == 1, :]
+    X_non_spam = X[Y == 0, :]
+    
+    phi = num_spam / num_mails
+    mu_spam = (np.sum(X_spam, axis=0) + alpha) / (np.sum(X_spam) + alpha * vocab_size)
+    mu_non_spam = (np.sum(X_non_spam, axis=0) + alpha) / (np.sum(X_non_spam) + alpha * vocab_size)
+    # import pdb; pdb.set_trace()
     ###########################################################################
     #                            END OF YOUR CODE                             #
     ###########################################################################
@@ -68,7 +78,11 @@ def test_naive_bayes(X: np.ndarray,
     # Hint 1: Think about using logarithms.                                   #
     # Hint 2: You may want to consider each email as an indepenednet email    #
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    log_prob_spam = np.log(phi) + X @ np.log(mu_spam)
+    log_prob_non_spam = np.log(1 - phi) + X @ np.log(mu_non_spam)
+    pred[log_prob_spam >= log_prob_non_spam] = 1
+    # import pdb; pdb.set_trace()
     ###########################################################################
     #                            END OF YOUR CODE                             #
     ###########################################################################
@@ -118,7 +132,12 @@ def get_indicative_tokens(mu_spam: np.ndarray,
     # return type.                                                    #
     # Hint: You may want to revisit Numpy API to get a sorted index.  #
     ###################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    diff = np.log(mu_spam / mu_non_spam)
+    # import pdb; pdb.set_trace()
+    idx_list = np.argsort(diff)[-top_k : ]
+    idx_list = idx_list[::-1]
+    
     ###################################################################
     #                        END OF YOUR CODE                         #
     ###################################################################
