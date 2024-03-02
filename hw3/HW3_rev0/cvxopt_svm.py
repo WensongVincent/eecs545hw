@@ -140,7 +140,19 @@ def get_qp_params(X, y, C, kernel_params):
     # (e.g. degree, gamma, coef0) for every kernel.
     # Hint: kernel_matrix may be useful here.
     ###################################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    N, D = X.shape
+    
+    P = (y[:, np.newaxis] @ y[np.newaxis, :]) * kernel_matrix(X, X, kernel_params)
+    q = -np.ones((N, ))
+    G = np.concatenate((-np.identity(N), np.identity(N)), axis=0)
+    h = np.concatenate((np.zeros((N, )), C * np.ones((N, )) ))
+    A = np.copy(y).reshape(1, N).astype(np.float64)
+    b = np.array([0.0])
+    
+    # print(P.dtype, q.dtype, G.dtype, h.dtype, A.dtype, b.dtype)
+    # import pdb; pdb.set_trace()
+    # print(P)
     ###################################################################################
     #                                END OF YOUR CODE                                 #
     ###################################################################################
@@ -192,7 +204,16 @@ def fit_bias(X, y, alpha, kernel_params):
     # TODO calculate the bias given X, y, and alpha
     # Hint: kernel_matrix or kernel_dot may be useful here
     ###################################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    X_support = X[is_support]
+    y_support = y[is_support]
+    alpha_support = alpha[is_support]
+    N_support = X_support.shape[0]
+    # import pdb; pdb.set_trace()
+    
+    b = (y_support - kernel_matrix(X_support, X_support, kernel_params) @ (y_support * alpha_support)).sum() / N_support
+    # print(b)
+    # import pdb; pdb.set_trace()
     ###################################################################################
     #                                END OF YOUR CODE                                 #
     ###################################################################################
@@ -243,7 +264,11 @@ def decision_function(X, X_train, y_train, b, alpha, kernel_params):
     # Since this is kernelized, you may not be able to calculate w directly.
     # Hint: kernel_matrix or kernel_dot may be useful here
     ###################################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    N_sample = X.shape[0]
+    for i in range(N_sample):
+        h[i] = kernel_matrix(X[i].reshape(1, -1), X_train, kernel_params) @ (alpha * y_train) + b
+    # print(h)
     ###################################################################################
     #                                END OF YOUR CODE                                 #
     ###################################################################################
