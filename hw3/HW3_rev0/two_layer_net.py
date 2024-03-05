@@ -28,7 +28,8 @@ def fc_forward(x, w, b):
     ###########################################################################
     # TODO: Implement the forward pass. Store the result in the variable 'out'#
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    out = x @ w + b
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -57,7 +58,11 @@ def fc_backward(dout, cache):
     # TODO: Implement the affine backward pass.                               #
     # Note: 'db' is 1D, not 2D, vector.                                       #
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    N, _ = x.shape
+    dx = dout @ w.T
+    dw = x.T @ dout
+    db = (dout.T @ np.ones((N, 1))).squeeze()
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -80,7 +85,9 @@ def relu_forward(x):
     ###########################################################################
     # TODO: Implement the ReLU forward pass. update 'out'                     #
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    out = np.copy(x)
+    out[out < 0] = 0
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -102,7 +109,11 @@ def relu_backward(dout, cache):
     ###########################################################################
     # TODO: Implement the ReLU backward pass.                                 #
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    dx = np.copy(x)
+    dx[dx >= 0] = 1
+    dx[dx < 0] = 0
+    dx = dx * dout
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -139,7 +150,12 @@ def softmax_loss(x, y):
     # Hint for loss: Please check what 'log_probs' is.                        #
     # Hint for dx: Note that we already copied probs into dx.                 #
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    # print("in")
+    y_one_hot = np.zeros_like(x)
+    y_one_hot[np.arange(N), y] = 1
+    loss = - (np.sum(y_one_hot * log_probs)) / N
+    dx = (dx - y_one_hot) / N # why????
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -184,7 +200,13 @@ class TwoLayerNet:
         # biases of the first fully-connected layer, and keys 'W2' and 'b2' for    #
         # the weights and biases of the output affine layer.                       #
         ############################################################################
-        raise NotImplementedError("TODO: Add your implementation here.")
+        # raise NotImplementedError("TODO: Add your implementation here.")
+        w1 = np.random.normal(0.0, weight_scale,size = (input_dim, hidden_dim))
+        b1 = np.zeros(hidden_dim)
+        w2 = np.random.normal(0.0, weight_scale,size = (hidden_dim, num_classes))
+        b2 = np.zeros(num_classes)
+    
+        self.params = {"W1" : w1, "b1" : b1, "W2" : w2, "b2" : b2}
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -215,7 +237,11 @@ class TwoLayerNet:
         # class scores for X and storing them in the scores variable.              #
         # Please do not reimplement fc_forward and relu_forward from scratch.      #
         ############################################################################
-        raise NotImplementedError("TODO: Add your implementation here.")
+        # raise NotImplementedError("TODO: Add your implementation here.")
+        h1, cache1 = fc_forward(X, self.params["W1"], self.params["b1"])
+        h2, cache2 = relu_forward(h1)
+        h3, cache3 = fc_forward(h2, self.params["W2"], self.params["b2"])
+        scores = h3
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -234,7 +260,16 @@ class TwoLayerNet:
         # self.params[k]. Please do not reimplement softmax_loss, fc_backward, and #
         # relu_backward from scratch.                                              #
         ############################################################################
-        raise NotImplementedError("TODO: Add your implementation here.")
+        # raise NotImplementedError("TODO: Add your implementation here.")
+        loss, dh3 = softmax_loss(scores, y)
+        dh2, dw2, db2 = fc_backward(dh3, cache3)
+        dh1 = relu_backward(dh2, cache2)
+        dx, dw1, db1 = fc_backward(dh1, cache1)
+        
+        grads['W1'] = dw1
+        grads['W2'] = dw2
+        grads['b1'] = db1
+        grads['b2'] = db2
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
