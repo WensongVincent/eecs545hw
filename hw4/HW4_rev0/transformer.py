@@ -14,7 +14,7 @@ def hello():
 
 class MaskedAttention(nn.Module):
     # Masked/Causal Self-Attention
-    def __init__(self, embedding_dim, n_head, block_size):
+    def __init__(self, embedding_dim, n_head, block_size): #block_size is max sequence
         super().__init__()
         self.embedding_dim = embedding_dim
         self.n_head = n_head
@@ -26,7 +26,7 @@ class MaskedAttention(nn.Module):
                              torch.tril(torch.ones(block_size, block_size)).view(1, 1, block_size, block_size))
 
     def split(self, values):
-        B, T, C = values.shape
+        B, T, C = values.shape 
         return values.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
 
     def apply_mask(self, attention):
@@ -53,7 +53,11 @@ class MaskedAttention(nn.Module):
         # Output shape: att:                                                      #
         #              [batch_size, num_head, sequence_len, sequence_len]         #
         ###########################################################################
-        raise NotImplementedError("TODO: Add your implementation here.")
+        # raise NotImplementedError("TODO: Add your implementation here.")
+        softmax = nn.Softmax(dim=3)
+        att = ((Q @ K.transpose(2, 3)) / torch.sqrt(torch.tensor(self.embedding_dim / self.n_head)))
+        att = self.apply_mask(att)
+        att = softmax(att)
         ###########################################################################
         #                             END OF YOUR CODE                            #
         ###########################################################################

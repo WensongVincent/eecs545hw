@@ -74,7 +74,25 @@ class ConvNet(object):
         # Hint: The output of max pooling after W2 needs to be flattened before    #
         # it can be passed into W3. Calculate the size of W3 dynamically           #
         ############################################################################
-        raise NotImplementedError("TODO: Add your implementation here.")
+        # raise NotImplementedError("TODO: Add your implementation here.")
+        # Calculate the size after the first conv and pool layers
+        H1 = (self.H - filter_size + 1) // 2
+        W1 = (self.W - filter_size + 1) // 2
+
+        # Calculate the size after the second conv and pool layers
+        H2 = (H1 - filter_size + 1) // 2
+        W2 = (W1 - filter_size + 1) // 2
+
+        # Convolutional layers
+        self.params['W1'] = np.random.uniform(-np.sqrt(1/(self.C*filter_size**2)), np.sqrt(1/(self.C*filter_size**2)), (num_filters_1, self.C, filter_size, filter_size))
+        self.params['W2'] = np.random.uniform(-np.sqrt(1/(num_filters_1*filter_size**2)), np.sqrt(1/(num_filters_1*filter_size**2)), (num_filters_2, num_filters_1, filter_size, filter_size))
+
+        # Fully connected layers
+        self.params['W3'] = np.random.uniform(-np.sqrt(1/(num_filters_2*H2*W2)), np.sqrt(1/(num_filters_2*H2*W2)), (num_filters_2*H2*W2, hidden_dim))
+        self.params['b3'] = np.zeros(hidden_dim)
+        self.params['W4'] = np.random.uniform(-np.sqrt(1/hidden_dim), np.sqrt(1/hidden_dim), (hidden_dim, num_classes))
+        self.params['b4'] = np.zeros(num_classes)
+
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -105,7 +123,27 @@ class ConvNet(object):
         # Hint: The output of max pooling after W2 needs to be flattened before    #
         # it can be passed into W3.                                                #
         ############################################################################
-        raise NotImplementedError("TODO: Add your implementation here.")
+        # raise NotImplementedError("TODO: Add your implementation here.")
+        # Conv1 -> ReLU -> Pool1
+        out_conv1, cache_conv1 = conv_forward(X, W1)
+        out_relu1, cache_relu1 = relu_forward(out_conv1)
+        out_pool1, cache_pool1 = max_pool_forward(out_relu1, pool_param)
+
+        # Conv2 -> ReLU -> Pool2
+        out_conv2, cache_conv2 = conv_forward(out_pool1, W2)
+        out_relu2, cache_relu2 = relu_forward(out_conv2)
+        out_pool2, cache_pool2 = max_pool_forward(out_relu2, pool_param)
+
+        # Flatten the output from the pooling layer to make it a vector
+        out_pool2_flat = out_pool2.reshape(X.shape[0], -1)
+
+        # FC1 -> ReLU
+        out_fc1, cache_fc1 = fc_forward(out_pool2_flat, W3, b3)
+        out_relu3, cache_relu3 = relu_forward(out_fc1)
+
+        # FC2 -> Softmax
+        scores, cache_fc2 = fc_forward(out_relu3, W4, b4)
+
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -122,7 +160,49 @@ class ConvNet(object):
         # Hint: The backwards from W3 needs to be un-flattened before it can be    #
         # passed into the max pool backwards                                       #
         ############################################################################
-        raise NotImplementedError("TODO: Add your implementation here.")
+        # raise NotImplementedError("TODO: Add your implementation here.")
+        # Start with the gradient from the loss
+        loss, dscores = softmax_loss(scores, y)
+
+        # Backprop through FC2
+        dx, dw4, db4 = fc_backward(dscores, cache_fc2)
+        grads['W4'] = dw4
+        grads['b4'] = db4
+
+        # Backprop through ReLU3
+        dx = relu_backward(dx, cache_relu3)
+
+        # Backprop through FC1
+        dx, dw3, db3 = fc_backward(dx, cache_fc1)
+        grads['W3'] = dw3
+        grads['b3'] = db3
+
+        # Un-flatten dx to match the shape after max pooling 2
+        dx = dx.reshape(out_pool2.shape)
+
+        # Backprop through Pool2
+        dx = max_pool_backward(dx, cache_pool2)
+
+        # Backprop through ReLU2
+        dx = relu_backward(dx, cache_relu2)
+
+        # Backprop through Conv2
+        dx, dw2 = conv_backward(dx, cache_conv2)
+        grads['W2'] = dw2
+
+        # Backprop through Pool1
+        dx = max_pool_backward(dx, cache_pool1)
+
+        # Backprop through ReLU1
+        dx = relu_backward(dx, cache_relu1)
+
+        # Backprop through Conv1
+        dx, dw1 = conv_backward(dx, cache_conv1)
+        grads['W1'] = dw1
+
+        return loss, grads
+
+
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################

@@ -60,7 +60,13 @@ class Trainer:
             #           torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)  #
             #       5. Perform an optimization step on self.optimizer                 #
             ###########################################################################
-            raise NotImplementedError("TODO: Add your implementation here.")
+            # raise NotImplementedError("TODO: Add your implementation here.")
+            # with torch.set_grad_enabled(True):
+            self.optimizer.zero_grad()
+            pred, loss = self.model(x, y)
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+            self.optimizer.step()
             ###########################################################################
             #                             END OF YOUR CODE                            #
             ###########################################################################

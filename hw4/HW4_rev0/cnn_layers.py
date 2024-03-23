@@ -55,7 +55,15 @@ def conv_forward(x, w):
     # H_prime and W_prime. However, for this problem the dataset is small     #
     # enough so it is not necessary to do so.                                 #
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    for n in range(N):  # Iterate over all data points
+      for j in range(H_prime):
+          for i in range(W_prime):
+              # Extract the current slice for all filters
+              current_slice = x[n, :, j:j+HH, i:i+WW].reshape(1, C, HH, WW)
+              # Broadcasted multiplication and sum across the filter dimensions
+              # resulting in a shape of (F,)
+              out[n, :, j, i] = np.sum(current_slice * w, axis=(1, 2, 3))
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -112,7 +120,21 @@ def conv_backward(dout, cache):
     # Hint: You can flip a numpy array by slicing.                            #
     # E.g. x[:,:,::-1,::-1] will flip the H and W dimensions of x.            #
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    # Iterate over the batch
+    for n in range(N):
+        # Iterate over the height of the output gradient
+        for h_out in range(H_prime):
+            # Iterate over the width of the output gradient
+            for w_out in range(W_prime):
+                # Iterate over the number of filters
+                for f in range(F):
+                    # Window we want to apply the respective f to
+                    window = x[n, :, h_out:h_out+HH, w_out:w_out+WW]
+                    # Update dw (Gradient with respect to the filter weights)
+                    dw[f] += window * dout[n, f, h_out, w_out]
+                    # Update dx (Gradient with respect to the input data)
+                    dx[n, :, h_out:h_out+HH, w_out:w_out+WW] += w[f] * dout[n, f, h_out, w_out]
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################

@@ -153,7 +153,31 @@ class CaptioningRNN:
         # defined above to store loss and gradients; grads[k] should give the      #
         # gradients for self.params[k].                                            #
         ############################################################################
-        raise NotImplementedError("TODO: Add your implementation here.")
+        # raise NotImplementedError("TODO: Add your implementation here.")
+        # Step 1: Initialize the hidden state using image features
+        h0 = features.dot(W_proj) + b_proj
+        
+        # Step 2: Use word embeddings to transform the words in captions_in
+        x, cache_embed = word_embedding_forward(captions_in, W_embed)
+        
+        # Step 3: Run the RNN forward on the word embeddings
+        h, cache_rnn = rnn_forward(x.swapaxes(0, 1), h0=h0, Wx=Wx, Wh=Wh, b=b)
+        
+        # Step 4: Apply a temporal fully connected layer to get vocab scores
+        scores, cache_temporal_fc = temporal_fc_forward(h.swapaxes(0, 1), w=W_vocab, b=b_vocab)
+        
+        # Step 5: Compute the loss
+        captions_out = captions[:, 1:]
+        mask = (captions_out != self._null)
+        loss, dscores = temporal_softmax_loss(scores, captions_out, mask)
+        
+        # Backward pass
+        dh, grads['W_vocab'], grads['b_vocab'] = temporal_fc_backward(dscores, cache_temporal_fc)
+        dx, dh0, grads['Wx'], grads['Wh'], grads['b'] = rnn_backward(dh.swapaxes(0, 1), cache_rnn)
+        grads['W_embed'] = word_embedding_backward(dx.swapaxes(0, 1), cache_embed)
+        
+        grads['W_proj'] = features.T.dot(dh0)
+        grads['b_proj'] = np.sum(dh0, axis=0)
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -208,11 +232,35 @@ class CaptioningRNN:
         # HINT: You may not use the rnn_forward functions here; you'll            #
         # need to call rnn_step_forward in a loop.                                #
         ###########################################################################
-        h0 = features.dot(W_proj) + b_proj
-        start = (self._start * np.ones(N)).astype(np.int32)
-        x = W_embed[start, :]
-        h = h0
-        raise NotImplementedError("TODO: Add your implementation here.")
+        # h0 = features.dot(W_proj) + b_proj
+        # start = (self._start * np.ones(N)).astype(np.int32)
+        # x = W_embed[start, :]
+        # h = h0
+        # raise NotImplementedError("TODO: Add your implementation here.")
+        
+        # Step 1: Compute the initial hidden state using image features
+        h = np.dot(features, W_proj) + b_proj
+        prev_word = self._start * np.ones((N,), dtype=np.int32)
+
+        for t in range(max_length):
+            # Step 2: Embed the previous word
+            x, _ = word_embedding_forward(prev_word, W_embed)
+
+            # Step 3: Make an RNN step using the previous hidden state
+            # Note: Since we are generating one word at a time, rnn_step_forward is used instead of rnn_forward
+            h, _ = rnn_step_forward(x, h, Wx, Wh, b)
+
+            # Step 4: Apply the learned affine transformation to the next hidden state
+            scores, _ = temporal_fc_forward(h[:, np.newaxis, :], W_vocab, b_vocab)
+            scores = scores.squeeze(axis=1)  # Remove the singleton dimension for consistency with N x V
+
+            # Step 5: Select the word with the highest score as the next word
+            next_word = np.argmax(scores, axis=1)
+            captions[:, t] = next_word
+
+            # Update the previous word with the next word for the next iteration
+            prev_word = next_word
+        
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################

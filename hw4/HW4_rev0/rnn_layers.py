@@ -155,7 +155,7 @@ def word_embedding_forward(x, W):
     - cache: Values needed for the backward pass
     """
     out, cache = None, None
-    out = W[x, :]
+    out = W[x, :] # Why this work? why don't use one-hot first
     cache = x, W
     return out, cache
 
@@ -200,7 +200,19 @@ def temporal_fc_forward(x, w, b):
     ###########################################################################
     # TODO: Implement the forward pass.
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    N, T, D = x.shape
+    M = b.shape[0]
+
+    # out = np.zeros((N, T, M))
+
+    # for t in range(T):
+    #     # Reshape x to 2D (N*D) for matmul, then back to 3D
+    #     out[:, t, :] = x[:, t, :].dot(w) + b
+        
+    W = w[np.newaxis, :, :] * np.ones((N, 1, 1), dtype=w.dtype)
+    out = x @ W + b
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -224,7 +236,19 @@ def temporal_fc_backward(dout, cache):
     ###########################################################################
     # TODO: Implement the backward pass.
     ###########################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    x, w, b, out = cache
+    N, T, D = x.shape
+    M = b.shape[0]
+
+    dx = np.zeros_like(x)
+    dw = np.zeros_like(w)
+    db = np.zeros_like(b)
+
+    for t in range(T):
+        dx[:, t, :] = dout[:, t, :].dot(w.T)
+        dw += x[:, t, :].T.dot(dout[:, t, :])
+        db += dout[:, t, :].sum(axis=0)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################

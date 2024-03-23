@@ -66,7 +66,7 @@ def train_model(device, dataloaders, dataset_sizes, model, criterion,
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
-                # zero the parameter gradients
+                # zero the parameter gradients, clean gradients from previoud iteration
                 optimizer.zero_grad()
 
                 # forward
@@ -85,7 +85,12 @@ def train_model(device, dataloaders, dataset_sizes, model, criterion,
                     # - preds : int tensor (N)                                                         #
                     # - loss : torch scalar                                                            #
                     ####################################################################################
-                    raise NotImplementedError("TODO: Add your implementation here.")
+                    # raise NotImplementedError("TODO: Add your implementation here.")
+                    outputs = model(inputs)
+                    unknown, preds = torch.max(outputs, 1)
+                    loss = criterion(outputs, labels)
+                    # import pdb; pdb.set_trace()
+                    
                     ####################################################################################
                     #                             END OF YOUR CODE                                     #
                     ####################################################################################
@@ -158,7 +163,11 @@ def finetune(device, dataloaders, dataset_sizes, class_names, num_epochs=10):
     # TODO: Replace the last layer of model_ft with a linear layer with 2 output       #
     # classes                                                                          #
     ####################################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    # print(model_ft)
+    fc_in_feature = model_ft.fc.in_features
+    model_ft.fc = nn.Linear(fc_in_feature, len(class_names))
+    # import pdb; pdb.set_trace()
     ####################################################################################
     #                             END OF YOUR CODE                                     #
     ####################################################################################
@@ -171,7 +180,9 @@ def finetune(device, dataloaders, dataset_sizes, class_names, num_epochs=10):
     # See torch.nn.CrossEntropyLoss for the details about cross entropy loss           #
     # You can see the optimizers in torch.optim.                                       #
     ####################################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    criterion = nn.CrossEntropyLoss()
+    optimizer_ft = torch.optim.Adam(model_ft.parameters(), lr=1e-4, weight_decay=1.0)
     ####################################################################################
     #                             END OF YOUR CODE                                     #
     ####################################################################################
@@ -200,7 +211,9 @@ def freeze(device, dataloaders, dataset_sizes, class_names, num_epochs=10):
     # Hint: You can get all parameters of a module x via x.parameters()                #
     # Hint: Searching online for 'freezing pytorch model' will also help               #
     ####################################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    for param in model_conv.parameters():
+        param.requires_grad = False
     ####################################################################################
     #                             END OF YOUR CODE                                     #
     ####################################################################################
@@ -210,7 +223,9 @@ def freeze(device, dataloaders, dataset_sizes, class_names, num_epochs=10):
     # TODO: Replace last layer in with a linear layer having 2 output classes          #
     # Parameters of newly constructed modules have requires_grad=True by default       #
     ####################################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    fc_in_feature = model_conv.fc.in_features
+    model_conv.fc = nn.Linear(fc_in_feature, len(class_names))
     ####################################################################################
     #                             END OF YOUR CODE                                     #
     ####################################################################################
@@ -223,7 +238,9 @@ def freeze(device, dataloaders, dataset_sizes, class_names, num_epochs=10):
     # classification, you will need cross entorpy loss for the criterion.              #
     # Note: Make sure that the optimizer only updates the parameters of the last layer #
     ####################################################################################
-    raise NotImplementedError("TODO: Add your implementation here.")
+    # raise NotImplementedError("TODO: Add your implementation here.")
+    criterion = nn.CrossEntropyLoss()
+    optimizer_conv = torch.optim.Adam(model_conv.parameters(), lr=1e-4, weight_decay=0.95)
     ####################################################################################
     #                             END OF YOUR CODE                                     #
     ####################################################################################
